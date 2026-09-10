@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYMPRO - Membresías</title>
+<link rel="stylesheet" href="/static/css/g.css">
+<style>
+.mem-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.mem-form .full{grid-column:1/-1}.mem-message{margin-top:14px}.mem-actions{display:flex;gap:10px;flex-wrap:wrap}@media(max-width:800px){.mem-form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="content">
+<h2>Catálogo de membresías</h2>
+<p class="subtitle">Crea y administra las membresías que utiliza el sistema para asignaciones y renovaciones.</p>
+<section class="card" style="margin-top:20px">
+<h3>Crear membresía</h3>
+<form id="membresiaForm" style="margin-top:18px">
+<div class="mem-form">
+<label>Nombre<input class="input" name="nombre" required placeholder="Ej. Premium"></label>
+<label>Duración (días)<input class="input" name="duracion" type="number" min="1" required placeholder="30"></label>
+<label>Precio<input class="input" name="precio" type="number" min="0" step="0.01" required placeholder="1100.00"></label>
+<label>Estado<select class="input" name="estado"><option value="activa">Activa</option><option value="inactiva">Inactiva</option></select></label>
+<label class="full">Descripción<textarea class="input" name="descripcion" rows="3" placeholder="Describe los beneficios o condiciones de la membresía"></textarea></label>
+</div>
+<div class="mem-actions" style="margin-top:18px"><button class="btn-primary" type="submit">Guardar membresía</button><button class="btn-primary" type="reset">Limpiar</button></div>
+<p id="membresiaMessage" class="mem-message"></p>
+</form>
+</section>
+<section class="card" style="margin-top:24px"><h3>Membresías registradas</h3><div style="overflow:auto;margin-top:16px"><table><thead><tr><th>Nombre</th><th>Descripción</th><th>Duración</th><th>Precio</th><th>Estado</th></tr></thead><tbody id="tablaMembresias"></tbody></table></div></section>
+</main>
+<script src="/static/js/membresias.js"></script>
+</body>
+</html>

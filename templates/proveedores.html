@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYMPRO - Proveedores</title>
+<link rel="stylesheet" href="/static/css/g.css">
+</head>
+<body>
+
+<main class="content">
+<h2>Proveedores</h2><section class="card"><input id="buscarProveedor" placeholder="Buscar proveedor"><button>+ Nuevo proveedor</button></section><section class="card"><table><thead><tr><th>Proveedor</th><th>Producto que abastece</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Estado</th><th>Acciones</th></tr></thead><tbody><tr><td>Proveedor Fitness SA</td><td>Proteína Whey</td><td>Ventas</td><td>555-1000</td><td>ventas@proveedor.test</td><td>Activo</td><td>Editar</td></tr></tbody></table></section><section class="card"><h3>Alta de proveedor</h3><form id="proveedorForm"><div class="grid"><label>Nombre<input id="provNombre" name="nombre" required></label><label>Producto<input id="provProducto" name="producto" required></label><label>Contacto<input id="provContacto" name="contacto"></label><label>Teléfono<input id="provTelefono" name="telefono"></label><label>Email<input id="provEmail" name="email" type="email"></label><label>Dirección<input id="provDireccion" name="direccion"></label></div><button type="submit">Guardar proveedor</button><p id="mensajeProveedor"></p></form></section>
+</main>
+<script src="/static/js/proveedores.js"></script>
+</body>
+</html>

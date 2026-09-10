@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYMPRO - Reportes</title>
+<link rel="stylesheet" href="/static/css/g.css">
+<style>
+.report-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:end}.report-actions label{flex:1;min-width:170px}.report-actions button{align-self:end}.chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.chart-box{min-height:330px}.chart-box canvas{width:100%;height:270px;display:block}.report-message{margin-top:14px}.report-table{overflow:auto;margin-top:18px}@media(max-width:900px){.chart-grid{grid-template-columns:1fr}.main{padding:20px}}
+</style>
+</head>
+<body>
+<main class="content">
+<h2>Reportes</h2>
+<p class="subtitle">Consulta la información del sistema y visualiza las gráficas de ventas, productos y membresías.</p>
+<section class="card report-actions">
+<label>Desde<input id="desde" class="input" type="date"></label>
+<label>Hasta<input id="hasta" class="input" type="date"></label>
+<button class="btn-primary" id="generarTodo">Generar reporte</button>
+<button class="btn-primary" id="imprimirReporte" type="button">Imprimir / PDF</button>
+</section>
+<section class="grid grid-3" style="margin-top:24px">
+<article class="card"><h3>Ventas</h3><p>Ventas y productos más vendidos.</p><button class="btn-primary generar" data-tipo="ventas">Generar ventas</button></article>
+<article class="card"><h3>Inventario</h3><p>Existencias y productos con stock bajo.</p><button class="btn-primary generar" data-tipo="inventario">Generar inventario</button></article>
+<article class="card"><h3>Membresías</h3><p>Distribución de socios por membresía.</p><button class="btn-primary generar" data-tipo="membresias">Generar membresías</button></article>
+</section>
+<p id="reportMessage" class="report-message"></p>
+<section id="graficas" class="chart-grid" style="margin-top:24px">
+<article class="card chart-box"><h3>Ventas por día</h3><canvas id="graficaVentas"></canvas></article>
+<article class="card chart-box"><h3>Productos más vendidos</h3><canvas id="graficaProductos"></canvas></article>
+<article class="card chart-box"><h3>Membresías por tipo</h3><canvas id="graficaMembresias"></canvas></article>
+<article class="card chart-box"><h3>Socios por estado</h3><canvas id="graficaEstados"></canvas></article>
+</section>
+<section class="card" style="margin-top:24px"><h3>Resultado del reporte</h3><div id="resultadoReporte" class="report-table"></div></section>
+</main>
+<script src="/static/js/reportes.js"></script>
+</body>
+</html>

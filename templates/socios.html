@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYMPRO - Socios</title>
+<link rel="stylesheet" href="/static/css/g.css">
+</head>
+<body>
+
+<main class="content">
+<h2>Gestión de socios</h2><section class="card"><input id="buscarSocio" placeholder="Buscar nombre, número o teléfono"><select id="filtroEstado"><option value="">Todos</option><option>Activo</option><option>Inactivo</option><option>Vencido</option></select><button id="nuevoSocio">+ Nuevo socio</button></section><section class="card"><table><thead><tr><th>No. socio</th><th>Nombre</th><th>Sexo</th><th>Teléfono</th><th>Membresía</th><th>Ingreso</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="tablaSocios"></tbody></table></section><section class="card"><h3>Registrar / editar socio</h3><form id="socioForm"><input type="hidden" name="id_cliente" id="id_cliente"><div class="grid"><label>No. socio<input name="no_socio" required></label><label>Nombre<input name="nombre" required></label><label>Apellido<input name="apellido" required></label><label>Fecha de nacimiento<input name="fecha_nacimiento" type="date"></label><label>Sexo<select name="genero"><option>Femenino</option><option>Masculino</option><option>Otro</option></select></label><label>Teléfono<input name="telefono"></label><label>Email<input name="email" type="email"></label><label>Dirección<input name="direccion"></label><label>Membresía<select name="id_membresia" id="id_membresia"><option value="">Seleccione membresía</option></select></label></div><button type="submit">Guardar socio</button><button type="reset">Limpiar</button><p id="socioMessage"></p></form></section>
+</main>
+<script src="/static/js/socios.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYMPRO - Cliente</title>
+<link rel="stylesheet" href="/static/css/g.css">
+</head>
+<body>
+
+<main class="content">
+<h2>Consulta de cliente</h2><section class="card"><form id="buscarCliente"><input id="criterioCliente" placeholder="Número de socio, nombre o teléfono" required><button>Buscar</button></form></section><section class="card"><h3>Información</h3><div class="grid"><label>No. socio<input id="c_no" readonly></label><label>Nombre<input id="c_nombre" readonly></label><label>Apellido<input id="c_apellido" readonly></label><label>Sexo<input id="c_genero" readonly></label><label>Fecha nacimiento<input id="c_nacimiento" readonly></label><label>Teléfono<input id="c_tel" readonly></label><label>Email<input id="c_email" readonly></label><label>Dirección<input id="c_dir" readonly></label></div><p id="clienteMessage"></p></section>
+</main>
+<script src="/static/js/cliente.js"></script>
+</body>
+</html>

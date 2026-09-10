@@ -1,0 +1,1 @@
+document.getElementById('loginForm')?.addEventListener('submit',()=>document.getElementById('loginMessage').textContent='Validando acceso...');

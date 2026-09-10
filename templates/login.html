@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYMPRO - Acceso</title>
+<link rel="stylesheet" href="/static/css/g.css">
+</head>
+<body>
+
+<main class="content">
+<h1>GYMPRO</h1><p>Sistema Integral de Gestión de Gimnasio</p><form id="loginForm" method="POST" action="/login"><label>Usuario</label><input name="usuario" required><label>Contraseña</label><input name="password" type="password" required><label>Rol</label><select name="rol" required><option value="">Seleccione</option><option value="recepcion">Recepción</option><option value="gerente">Gerente</option><option value="dueno">Dueño</option><option value="cliente">Cliente</option></select><button type="submit">Iniciar sesión</button><p id="loginMessage"></p></form>
+</main>
+<script src="/static/js/login.js"></script>
+</body>
+</html>

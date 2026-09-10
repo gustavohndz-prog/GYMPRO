@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYMPRO - Clases</title>
+<link rel="stylesheet" href="/static/css/g.css">
+</head>
+<body>
+
+<main class="content">
+<h2>Gestión de clases</h2><p>Recepción administra clases y cupos. El gerente no asigna clases ni cupos.</p><section class="card"><input id="buscarClase" placeholder="Buscar clase"><button id="nuevaClase">+ Nueva clase</button><button id="cancelarClase">Cancelar clase</button></section><section class="card"><table><thead><tr><th>Clase</th><th>Disciplina</th><th>Entrenador</th><th>Día</th><th>Horario</th><th>Cupo máximo</th><th>Disponibles</th><th>Estado</th></tr></thead><tbody id="tablaClases"><tr><td>Spinning</td><td>Spinning</td><td>Juan Pérez</td><td>Lunes</td><td>18:00</td><td>20</td><td>8</td><td>Activa</td></tr><tr><td>Yoga</td><td>Yoga</td><td>María López</td><td>Martes</td><td>19:00</td><td>15</td><td>5</td><td>Activa</td></tr></tbody></table></section><section class="card"><h3>Programar clase</h3><form><div class="grid"><label>Nombre<input required></label><label>Disciplina<select><option>Spinning</option><option>Yoga</option><option>Cross Training</option></select></label><label>Entrenador<select><option>Juan Pérez</option><option>María López</option></select></label><label>Día<select><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option></select></label><label>Horario<input type="time" required></label><label>Duración<input type="number" value="60" min="1"></label><label>Cupo máximo<input type="number" value="20" min="1"></label></div><button>Guardar clase</button></form></section><section class="card"><h3>Cancelar clase</h3><form id="cancelacionForm"><label>Clase<select><option>Spinning</option><option>Yoga</option></select></label><label>Fecha<input type="date" required></label><label>Motivo<input placeholder="Día festivo, enfermedad del entrenador, etc." required></label><button type="submit">Registrar cancelación</button><p id="cancelacionMessage"></p></form></section>
+</main>
+<script src="/static/js/clases.js"></script>
+</body>
+</html>

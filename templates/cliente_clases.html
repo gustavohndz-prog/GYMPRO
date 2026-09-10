@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYMPRO - Cliente Clases</title>
+<link rel="stylesheet" href="/static/css/g.css">
+</head>
+<body>
+
+<main class="content">
+<h2>Reservar clase</h2><section class="card"><input id="buscarClaseCliente" placeholder="Buscar clase"><select><option>Todos los días</option><option>Lunes</option><option>Martes</option><option>Miércoles</option></select></section><section class="card"><table><thead><tr><th>Clase</th><th>Entrenador</th><th>Día</th><th>Horario</th><th>Cupo disponible</th><th>Acción</th></tr></thead><tbody><tr><td>Spinning</td><td>Juan Pérez</td><td>Lunes</td><td>18:00</td><td>8</td><td><button class="reservar" data-clase="1">Reservar</button></td></tr><tr><td>Yoga</td><td>María López</td><td>Martes</td><td>19:00</td><td>5</td><td><button class="reservar" data-clase="2">Reservar</button></td></tr></tbody></table><p id="reservaMessage"></p></section>
+</main>
+<script src="/static/js/cliente_clases.js"></script>
+</body>
+</html>

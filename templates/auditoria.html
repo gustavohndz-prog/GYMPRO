@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYMPRO - Auditoria</title>
+<link rel="stylesheet" href="/static/css/g.css">
+</head>
+<body>
+
+<main class="content">
+<h2>Auditoría</h2><p>Registro de control para rastrear quién creó y quién editó información.</p><section class="card"><input id="buscarAuditoria" placeholder="Usuario, módulo o acción"><input id="fechaAuditoria" type="date"><button id="filtrarAuditoria">Filtrar</button></section><section class="card"><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Módulo</th><th>Registro</th><th>Detalle</th></tr></thead><tbody id="tablaAuditoria"><tr><td>10/08/2026 10:20</td><td>admin</td><td>CREÓ</td><td>Usuarios</td><td>2</td><td>Alta de usuario</td></tr></tbody></table></section>
+</main>
+<script src="/static/js/auditoria.js"></script>
+</body>
+</html>

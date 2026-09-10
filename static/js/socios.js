@@ -1,0 +1,14 @@
+let socios=[];
+const $=id=>document.getElementById(id);
+async function cargar(){
+  const q=$('buscarSocio')?.value.trim()||''; const estado=$('filtroEstado')?.value||'';
+  try{const r=await fetch('/api/socios?q='+encodeURIComponent(q)+'&estado='+encodeURIComponent(estado)); const d=await r.json(); if(!r.ok)throw Error(d.error); socios=d.data||[];
+    const t=$('tablaSocios'); t.innerHTML='';
+    socios.forEach(s=>{const tr=document.createElement('tr'); tr.innerHTML=`<td>${s.no_socio||''}</td><td>${s.nombre||''} ${s.apellido||''}</td><td>${s.genero||''}</td><td>${s.telefono||''}</td><td>${s.membresia||''}</td><td>${s.fecha_ingreso||''}</td><td>${s.fecha_fin||''}</td><td>${s.estado||''}</td><td><button type="button" data-edit="${s.id_cliente}">Editar</button> <button type="button" data-del="${s.id_cliente}">Eliminar</button></td>`;t.appendChild(tr);});
+  }catch(e){$('tablaSocios').innerHTML='<tr><td colspan="9">'+(e.message||'Error al consultar')+'</td></tr>'; }
+}
+async function membresias(){try{const r=await fetch('/api/membresias');const d=await r.json();if(!r.ok)throw Error(d.error);const sel=$('id_membresia'); if(!sel)return;sel.innerHTML='<option value="">Seleccione membresía</option>'; (d.data||[]).forEach(m=>{const id=m.id_membresia??m.id??'';const n=m.nombre??m.membresia??'';if(id)sel.insertAdjacentHTML('beforeend',`<option value="${id}">${n}</option>`);});}catch(e){}}
+document.addEventListener('DOMContentLoaded',()=>{cargar();membresias();});
+$('buscarSocio')?.addEventListener('input',cargar); $('filtroEstado')?.addEventListener('change',cargar); $('nuevoSocio')?.addEventListener('click',()=>{$('socioForm').reset();$('id_cliente').value='';});
+$('tablaSocios')?.addEventListener('click',e=>{const edit=e.target.dataset.edit, del=e.target.dataset.del;if(edit){const s=socios.find(x=>String(x.id_cliente)===String(edit));if(!s)return;Object.entries({id_cliente:s.id_cliente,no_socio:s.no_socio,nombre:s.nombre,apellido:s.apellido,fecha_nacimiento:s.fecha_nacimiento,genero:s.genero,telefono:s.telefono,email:s.email,direccion:s.direccion,id_membresia:s.id_membresia}).forEach(([k,v])=>{if($(k))$(k).value=v??'';});window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});}if(del&&confirm('¿Marcar este socio como inactivo?')) fetch('/api/socios/'+del,{method:'DELETE'}).then(()=>cargar());});
+$('socioForm')?.addEventListener('submit',async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.target));const id=data.id_cliente;delete data.id_cliente;const r=await fetch(id?'/api/socios/'+id:'/api/socios',{method:id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const d=await r.json().catch(()=>({}));$('socioMessage').textContent=r.ok?'Socio guardado correctamente.':(d.error||'No se pudo guardar.');if(r.ok){e.target.reset();$('id_cliente').value='';cargar();}});

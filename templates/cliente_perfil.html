@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYMPRO - Cliente Perfil</title>
+<link rel="stylesheet" href="/static/css/g.css">
+</head>
+<body>
+
+<main class="content">
+<h2>Mi perfil</h2><section class="card"><form id="perfilForm"><div class="grid"><label>Nombre<input name="nombre" value="Juan" required></label><label>Apellido<input name="apellido" value="Pérez" required></label><label>Sexo<input value="Masculino" readonly></label><label>Fecha nacimiento<input name="fecha_nacimiento" type="date"></label><label>Teléfono<input name="telefono" value="555-123-4567"></label><label>Email<input name="email" type="email" value="juan@email.com"></label><label>Dirección<input name="direccion"></label></div><button>Guardar cambios</button><p id="perfilMessage"></p></form></section>
+</main>
+<script src="/static/js/cliente_perfil.js"></script>
+</body>
+</html>

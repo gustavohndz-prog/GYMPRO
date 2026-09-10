@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYMPRO - Registro</title>
+<link rel="stylesheet" href="/static/css/g.css">
+</head>
+<body>
+
+<main class="content">
+<h2>Registro de socio</h2><section class="card"><form id="registroForm"><div class="grid"><label>No. socio<input name="no_socio" required></label><label>Nombre<input name="nombre" required></label><label>Apellido<input name="apellido" required></label><label>Sexo<select name="genero" required><option>Femenino</option><option>Masculino</option><option>Otro</option></select></label><label>Fecha nacimiento<input name="fecha_nacimiento" type="date"></label><label>Teléfono<input name="telefono" required></label><label>Email<input name="email" type="email"></label><label>Dirección<input name="direccion"></label><label>Membresía<select name="id_membresia" id="registroMembresia" required><option value="">Seleccione membresía</option></select></label></div><button>Registrar socio</button><p id="registroMessage"></p></form></section>
+</main>
+<script src="/static/js/registro.js"></script>
+</body>
+</html>

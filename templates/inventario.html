@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GYMPRO - Inventario</title>
+<link rel="stylesheet" href="/static/css/g.css">
+</head>
+<body>
+<main class="content">
+<h2>Inventario</h2>
+<section class="card">
+  <div class="grid">
+    <label>Buscar producto<input class="input" id="buscarProducto" type="search" placeholder="Nombre o descripción"></label>
+    <label>Estado<select class="input" id="filtroProducto"><option value="">Todos</option><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select></label>
+    <label>Stock<select class="input" id="filtroStock"><option value="">Todos</option><option value="bajo">Stock bajo</option></select></label>
+  </div>
+  <button class="btn-primary" id="nuevoProducto" type="button">+ Nuevo producto</button>
+</section>
+<section class="card table-container">
+<table><thead><tr><th>Producto</th><th>Categoría</th><th>Precio venta</th><th>Stock actual</th><th>Stock mínimo</th><th>Estado</th><th>Acciones</th></tr></thead>
+<tbody id="tablaProductos"><tr><td colspan="7">Cargando...</td></tr></tbody></table>
+</section>
+<section class="card">
+<h3>Producto</h3><p id="productoMessage"></p>
+<form id="productoForm"><input type="hidden" id="id_producto" name="id_producto">
+<div class="grid">
+<label>Producto<input class="input" id="producto" name="producto" required></label>
+<label>Categoría<select class="input" id="id_categoria" name="id_categoria"><option value="">Seleccione categoría</option></select></label>
+<label>Descripción<textarea class="input" id="descripcion" name="descripcion"></textarea></label>
+<label>Precio venta<input class="input" id="precio_venta" name="precio_venta" type="number" min="0" step="0.01" required></label>
+<label>Stock actual<input class="input" id="stock_actual" name="stock_actual" type="number" min="0" required></label>
+<label>Stock mínimo<input class="input" id="stock_minimo" name="stock_minimo" type="number" min="0" required></label>
+<label>Estado<select class="input" id="estado" name="estado"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select></label>
+</div><button class="btn-success" type="submit">Guardar producto</button>
+</form></section>
+</main>
+<script src="/static/js/inventario.js"></script>
+</body></html>
