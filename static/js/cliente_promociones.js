@@ -1,1 +1,1 @@
-document.addEventListener('DOMContentLoaded',()=>{});
+document.addEventListener('DOMContentLoaded',async()=>{const r=await fetch('/api/promociones'),d=await r.json(),t=document.getElementById('tablaPromosCliente');t.innerHTML='';(d.data||[]).forEach(x=>t.insertAdjacentHTML('beforeend',`<tr><td>${x.nombre??''}</td><td>${x.descripcion??''}</td><td>${x.tipo??''}</td><td>${x.valor??''}</td><td>${x.fecha_inicio??''}</td><td>${x.fecha_fin??''}</td></tr>`));if(!t.children.length)t.innerHTML='<tr><td colspan="6">No hay promociones vigentes.</td></tr>'})

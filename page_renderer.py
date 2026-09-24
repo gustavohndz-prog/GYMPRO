@@ -43,7 +43,7 @@ def _sidebar(path, role):
     return f'''<aside class="sidebar">
       <div class="brand"><div><strong>GYMPRO</strong><small>Sistema Integral</small></div></div>
       <nav class="menu">{''.join(rows)}</nav>
-      <div class="sidebar-footer"><span>{role.title()}</span><a class="menu-item" href="/logout" style="padding:0">Salir</a></div>
+      <div class="sidebar-footer"><span>{session.get('nombre') or session.get('usuario') or role.title()}</span><a class="menu-item" href="/logout" style="padding:0">Salir</a></div>
     </aside>'''
 
 

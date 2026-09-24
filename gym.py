@@ -23,13 +23,13 @@ def index(): return redirect(url_for("login"))
 @app.route("/login", methods=["GET","POST"])
 def login():
     if request.method == "POST":
-        usuario=request.form.get("usuario","").strip(); password=request.form.get("password",""); rol=request.form.get("rol","").lower()
+        usuario=request.form.get("usuario","").strip(); password=request.form.get("password","")
         try:
-            user=login_from_db(usuario,password,rol)
+            user=login_from_db(usuario,password)
             if user:
                 session.clear(); session.update(user)
                 return redirect(url_for("cliente_inicio") if user["rol"]=="cliente" else url_for("dashboard"))
-            flash("Usuario, contraseña o rol incorrectos.")
+            flash("Usuario o contraseña incorrectos.")
         except Exception as e:
             flash("No se pudo conectar con la base de datos gimnasio. Verifica XAMPP/MySQL y las credenciales de DB_CONFIG.")
     return render_screen("login.html","/login")

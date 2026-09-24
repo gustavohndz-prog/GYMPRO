@@ -1,38 +1,8 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GYMPRO - Reportes</title>
-<link rel="stylesheet" href="/static/css/g.css">
-<style>
-.report-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:end}.report-actions label{flex:1;min-width:170px}.report-actions button{align-self:end}.chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.chart-box{min-height:330px}.chart-box canvas{width:100%;height:270px;display:block}.report-message{margin-top:14px}.report-table{overflow:auto;margin-top:18px}@media(max-width:900px){.chart-grid{grid-template-columns:1fr}.main{padding:20px}}
-</style>
-</head>
-<body>
-<main class="content">
-<h2>Reportes</h2>
-<p class="subtitle">Consulta la información del sistema y visualiza las gráficas de ventas, productos y membresías.</p>
-<section class="card report-actions">
-<label>Desde<input id="desde" class="input" type="date"></label>
-<label>Hasta<input id="hasta" class="input" type="date"></label>
-<button class="btn-primary" id="generarTodo">Generar reporte</button>
-<button class="btn-primary" id="imprimirReporte" type="button">Imprimir / PDF</button>
-</section>
-<section class="grid grid-3" style="margin-top:24px">
-<article class="card"><h3>Ventas</h3><p>Ventas y productos más vendidos.</p><button class="btn-primary generar" data-tipo="ventas">Generar ventas</button></article>
-<article class="card"><h3>Inventario</h3><p>Existencias y productos con stock bajo.</p><button class="btn-primary generar" data-tipo="inventario">Generar inventario</button></article>
-<article class="card"><h3>Membresías</h3><p>Distribución de socios por membresía.</p><button class="btn-primary generar" data-tipo="membresias">Generar membresías</button></article>
-</section>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>GYMPRO - Reportes</title><link rel="stylesheet" href="/static/css/g.css"><style>@media print{body{background:#fff!important;color:#111!important}.sidebar,.report-toolbar,#reportMessage{display:none!important}.main{margin-left:0!important;width:100%!important;padding:0!important}.report-print-area,.report-print-area *{color:#111!important}.card{box-shadow:none!important;border:0!important;background:#fff!important}.chart-box{break-inside:avoid}.report-block{break-inside:avoid;border-color:#ccc!important}h2,h3{color:#111!important}}</style></head>
+<body><main class="content"><h2>Reportes</h2><p class="subtitle">Reportes independientes y reporte general consolidado.</p>
+<section id="reportToolbar" class="card report-toolbar"><div class="grid grid-3"><label>Desde<input id="desde" type="date"></label><label>Hasta<input id="hasta" type="date"></label><div><button class="btn-primary" id="generarTodo" type="button">Generar reporte general</button><button class="btn-primary" id="imprimirReporte" type="button">Imprimir reporte</button></div></div></section>
+<section class="grid grid-3" style="margin-top:24px"><article class="card"><h3>Reporte de ventas</h3><p>Solo operaciones de venta, ingresos y productos vendidos.</p><button class="btn-primary generar" data-tipo="ventas">Generar ventas</button></article><article class="card"><h3>Reporte de inventario</h3><p>Solo existencias, mínimos y productos con stock bajo.</p><button class="btn-primary generar" data-tipo="inventario">Generar inventario</button></article><article class="card"><h3>Reporte de membresías</h3><p>Solo socios, membresías y estados.</p><button class="btn-primary generar" data-tipo="membresias">Generar membresías</button></article></section>
 <p id="reportMessage" class="report-message"></p>
-<section id="graficas" class="chart-grid" style="margin-top:24px">
-<article class="card chart-box"><h3>Ventas por día</h3><canvas id="graficaVentas"></canvas></article>
-<article class="card chart-box"><h3>Productos más vendidos</h3><canvas id="graficaProductos"></canvas></article>
-<article class="card chart-box"><h3>Membresías por tipo</h3><canvas id="graficaMembresias"></canvas></article>
-<article class="card chart-box"><h3>Socios por estado</h3><canvas id="graficaEstados"></canvas></article>
-</section>
-<section class="card" style="margin-top:24px"><h3>Resultado del reporte</h3><div id="resultadoReporte" class="report-table"></div></section>
-</main>
-<script src="/static/js/reportes.js"></script>
-</body>
-</html>
+<section id="graficas" class="chart-grid report-print-area" style="margin-top:24px"><article class="card chart-box" id="boxVentas"><h3>Ventas por día</h3><p class="chart-info">Ingresos acumulados por cada fecha del periodo.</p><canvas id="graficaVentas"></canvas></article><article class="card chart-box" id="boxProductos"><h3>Productos vendidos</h3><p class="chart-info">Unidades vendidas y orden de productos con mayor movimiento.</p><canvas id="graficaProductos"></canvas></article><article class="card chart-box" id="boxMembresias"><h3>Membresías por tipo</h3><p class="chart-info">Distribución de socios por tipo de membresía.</p><canvas id="graficaMembresias"></canvas></article><article class="card chart-box" id="boxEstados"><h3>Socios por estado</h3><p class="chart-info">Distribución de socios activos, inactivos o vencidos.</p><canvas id="graficaEstados"></canvas></article><article class="card chart-box" id="boxStock"><h3>Stock por producto</h3><p class="chart-info">Existencias actuales de cada producto.</p><canvas id="graficaStock"></canvas></article></section>
+<section class="card report-print-area" style="margin-top:24px"><div id="encabezadoReporte"></div><div id="resultadoReporte" class="report-table"></div></section></main><script src="/static/js/reportes.js"></script></body></html>

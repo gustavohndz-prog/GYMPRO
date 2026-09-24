@@ -89,6 +89,7 @@ def login_from_db(usuario, password, requested_role=None):
         rol = normalize_role(row.get('__rol'))
         if rol not in {'recepcion', 'gerente', 'dueno', 'cliente'}:
             return None
+        # El rol siempre proviene de la BD; el formulario de acceso no lo solicita.
         if requested_role and normalize_role(requested_role) != rol:
             return None
         return {

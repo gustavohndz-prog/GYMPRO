@@ -1,16 +1,1 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GYMPRO - Acceso</title>
-<link rel="stylesheet" href="/static/css/g.css">
-</head>
-<body>
-
-<main class="content">
-<h2>Roles y permisos</h2><section class="card"><table><thead><tr><th>Módulo</th><th>Recepción</th><th>Gerente</th><th>Dueño</th><th>Cliente</th></tr></thead><tbody><tr><td>Socios</td><td>Gestiona</td><td>Consulta</td><td>Consulta</td><td>Propio</td></tr><tr><td>Clases y cupos</td><td>Gestiona</td><td>No asigna</td><td>Consulta</td><td>Reserva</td></tr><tr><td>Promociones</td><td>Consulta</td><td>Crea / gestiona</td><td>Consulta</td><td>Consulta</td></tr><tr><td>Usuarios</td><td>No</td><td>No</td><td>Gestiona</td><td>No</td></tr></tbody></table></section>
-</main>
-<script src="/static/js/acceso.js"></script>
-</body>
-</html>
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>GYMPRO - Acceso</title><link rel="stylesheet" href="/static/css/g.css"></head><body><main class="content"><h2>Control de acceso</h2><section class="card"><form id="accesoForm"><label>No. socio<input name="no_socio" required></label><button type="submit">Registrar entrada</button><p id="accesoMessage"></p></form></section><section class="card"><h3>Últimos accesos</h3><table><thead><tr><th>Fecha</th><th>Socio</th><th>Usuario</th><th>Tipo</th></tr></thead><tbody id="tablaAccesos"></tbody></table></section></main><script src="/static/js/acceso.js"></script></body></html>

@@ -114,6 +114,19 @@ def socios_post():
             fields.append(f"`{mapping['fecha_ingreso']}`"); vals.append(date.today())
         if mapping["estado"] and not any(f"`{mapping['estado']}`"==f for f in fields):
             fields.append(f"`{mapping['estado']}`"); vals.append("Activo")
+        # Genera automáticamente ingreso y vencimiento a partir de la membresía seleccionada.
+        if mapping.get("id_membresia") and "id_membresia" in payload and payload.get("id_membresia"):
+            fin_col=first_existing(cols,"fecha_fin","fecha_vencimiento","fecha_expiracion")
+            if fin_col and not any(f"`{fin_col}`"==f for f in fields):
+                try:
+                    with db.cursor() as cur:
+                        mc=columns_set(db,"membresias");mid=first_existing(mc,"id_membresia","id");dur=first_existing(mc,"duracion","duracion_dias","dias")
+                        if mid and dur:
+                            cur.execute(f"SELECT `{dur}` duracion FROM membresias WHERE `{mid}`=%s LIMIT 1",(payload.get("id_membresia"),));mr=cur.fetchone()
+                            if mr and mr.get("duracion") is not None:
+                                from datetime import timedelta
+                                fields.append(f"`{fin_col}`");vals.append(date.today()+timedelta(days=int(mr["duracion"])))
+                except Exception: pass
         required=[mapping[k] for k in ("no_socio","nombre","apellido") if mapping[k]]
         present=set(fields)
         if any(f"`{x}`" not in present for x in required):
@@ -140,6 +153,17 @@ def socios_put(id_cliente):
         for k,c in allowed.items():
             if c and k in payload:
                 sets.append(f"`{c}`=%s"); vals.append(payload[k])
+        if "id_membresia" in payload and payload.get("id_membresia"):
+            fin_col=first_existing(cols,"fecha_fin","fecha_vencimiento","fecha_expiracion")
+            try:
+                with db.cursor() as cur:
+                    mc=columns_set(db,"membresias");mid=first_existing(mc,"id_membresia","id");dur=first_existing(mc,"duracion","duracion_dias","dias")
+                    if fin_col and mid and dur:
+                        cur.execute(f"SELECT `{dur}` duracion FROM membresias WHERE `{mid}`=%s LIMIT 1",(payload.get("id_membresia"),));mr=cur.fetchone()
+                        if mr and mr.get("duracion") is not None:
+                            from datetime import timedelta
+                            sets.append(f"`{fin_col}`=%s");vals.append(date.today()+timedelta(days=int(mr["duracion"])))
+            except Exception: pass
         if not sets: db.close(); return json_error("No hay campos para actualizar")
         idcol=first_existing(cols,"id_cliente")
         with db.cursor() as cur:
@@ -241,10 +265,35 @@ def dashboard_get():
         with db.cursor() as cur:
             if estado: cur.execute(f"SELECT COUNT(*) n FROM clientes WHERE LOWER(CAST(`{estado}` AS CHAR))='activo'"); out["socios_activos"]=cur.fetchone()["n"]
             if fin: cur.execute(f"SELECT COUNT(*) n FROM clientes WHERE `{fin}` BETWEEN CURDATE() AND DATE_ADD(CURDATE(),INTERVAL 7 DAY)"); out["membresias_vencer"]=cur.fetchone()["n"]
-            vc=columns_set(db,"ventas"); vd=first_existing(vc,"fecha_venta","fecha","fecha_registro"); vt=first_existing(vc,"total","monto","importe")
+            vc=columns_set(db,"ventas"); vd=first_existing(vc,"fecha_venta","fecha","fecha_registro"); vt=first_existing(vc,"total","monto","importe"); vid=first_existing(vc,"id_venta","id")
             if vd and vt: cur.execute(f"SELECT COALESCE(SUM(`{vt}`),0) total FROM ventas WHERE `{vd}`>=DATE_FORMAT(CURDATE(),'%%Y-%%m-01')"); out["ventas_mes"]=clean(cur.fetchone()["total"])
-            cl=columns_set(db,"clases"); cd=first_existing(cl,"fecha","fecha_clase","dia");
+            cl=columns_set(db,"clases"); cd=first_existing(cl,"fecha","fecha_clase");
             if cd: cur.execute(f"SELECT COUNT(*) n FROM clases WHERE DATE(`{cd}`)=CURDATE()"); out["clases_hoy"]=cur.fetchone()["n"]
+            out["graficas"]={"ventas_por_dia":[],"productos_mas_vendidos":[],"membresias_por_tipo":[],"socios_por_estado":[]}
+            if vd and vt:
+                cur.execute(f"SELECT DATE(`{vd}`) periodo, COALESCE(SUM(`{vt}`),0) total FROM ventas WHERE `{vd}`>=DATE_SUB(CURDATE(),INTERVAL 30 DAY) GROUP BY DATE(`{vd}`) ORDER BY periodo")
+                out["graficas"]["ventas_por_dia"]=clean_rows(cur.fetchall())
+            try:
+                dc=columns_set(db,"detalles_venta");pc=columns_set(db,"productos");dvid=first_existing(dc,"id_venta");dpid=first_existing(dc,"id_producto");dqty=first_existing(dc,"cantidad");pid=first_existing(pc,"id_producto","id");pname=first_existing(pc,"nombre","producto");
+                if dvid and dpid and dqty and pid and pname and vid:
+                    cur.execute(f"SELECT p.`{pname}` producto,SUM(d.`{dqty}`) unidades FROM detalles_venta d JOIN ventas v ON d.`{dvid}`=v.`{vid}` JOIN productos p ON d.`{dpid}`=p.`{pid}` GROUP BY p.`{pname}` ORDER BY unidades DESC LIMIT 10")
+                    out["graficas"]["productos_mas_vendidos"]=clean_rows(cur.fetchall())
+            except Exception: pass
+            if estado:
+                cur.execute(f"SELECT `{estado}` estado,COUNT(*) cantidad FROM clientes GROUP BY `{estado}` ORDER BY cantidad DESC")
+                out["graficas"]["socios_por_estado"]=clean_rows(cur.fetchall())
+            try:
+                mc=columns_set(db,"membresias");mid=first_existing(mc,"id_membresia","id");mn=first_existing(mc,"nombre");cmid=first_existing(cc,"id_membresia")
+                if cmid and mid and mn:
+                    cur.execute(f"SELECT m.`{mn}` membresia,COUNT(*) cantidad FROM clientes c LEFT JOIN membresias m ON c.`{cmid}`=m.`{mid}` GROUP BY m.`{mn}` ORDER BY cantidad DESC")
+                    out["graficas"]["membresias_por_tipo"]=clean_rows(cur.fetchall())
+            except Exception: pass
+            try:
+                cur.execute("SHOW TABLES LIKE 'auditoria'")
+                if cur.fetchone():
+                    cur.execute("SELECT * FROM auditoria ORDER BY 1 DESC LIMIT 10")
+                    out["actividad"]=clean_rows(cur.fetchall())
+            except Exception: pass
         db.close(); return jsonify(out)
     except Exception as e: return json_error("No se pudo cargar el dashboard",500,e)
 
@@ -429,82 +478,184 @@ def usuarios_get():
 @api.get("/reportes/<tipo>")
 @role_required("gerente","dueno")
 def reporte(tipo):
-    """Genera datos reales para la pantalla de reportes y sus gráficas."""
-    tipo=tipo.lower().strip()
-    if tipo not in ("ventas","inventario","membresias"):
-        return json_error("Reporte no válido",404)
+    """Genera un reporte independiente: ventas, inventario, membresias o general."""
+    tipo = tipo.lower().strip()
+    if tipo not in ("ventas", "inventario", "membresias", "general"):
+        return json_error("Reporte no válido", 404)
+
+    db = None
     try:
-        db=get_db()
-        desde=request.args.get("desde","").strip()
-        hasta=request.args.get("hasta","").strip()
-        result={"data":[],"graficas":{}}
+        db = get_db()
+        desde = request.args.get("desde", "").strip()
+        hasta = request.args.get("hasta", "").strip()
+        result = {"tipo": tipo, "data": [], "graficas": {}}
+
         with db.cursor() as cur:
-            if tipo=="ventas":
-                vc=columns_set(db,"ventas"); dc=columns_set(db,"detalles_venta"); pc=columns_set(db,"productos")
-                vdate=first_existing(vc,"fecha_venta","fecha","fecha_registro")
-                vtotal=first_existing(vc,"total","monto","importe")
-                did=first_existing(dc,"id_detalle_venta","id_detalle")
-                dvid=first_existing(dc,"id_venta")
-                dpid=first_existing(dc,"id_producto")
-                dqty=first_existing(dc,"cantidad")
-                dsub=first_existing(dc,"subtotal","importe")
-                pid=first_existing(pc,"id_producto","id")
-                pname=first_existing(pc,"nombre","producto")
-                if not vdate or not dvid or not dpid or not dqty or not pid or not pname:
-                    db.close(); return json_error("No están disponibles las columnas necesarias para generar el reporte de ventas",409)
-                clauses=[]; params=[]
+            # =========================
+            # REPORTE DE VENTAS
+            # =========================
+            if tipo in ("ventas", "general"):
+                vc = columns_set(db, "ventas")
+                dc = columns_set(db, "detalles_venta")
+                pc = columns_set(db, "productos")
+                vdate = first_existing(vc, "fecha_venta", "fecha", "fecha_registro")
+                vtotal = first_existing(vc, "total", "monto", "importe")
+                vid = first_existing(vc, "id_venta", "id")
+                dvid = first_existing(dc, "id_venta")
+                dpid = first_existing(dc, "id_producto")
+                dqty = first_existing(dc, "cantidad")
+                dsub = first_existing(dc, "subtotal", "importe")
+                pid = first_existing(pc, "id_producto", "id")
+                pname = first_existing(pc, "nombre", "producto")
+                price = first_existing(pc, "precio_venta", "precio")
+
+                if not (vdate and vid and dvid and dpid and dqty and pid and pname):
+                    return json_error("No están disponibles las columnas necesarias para generar el reporte de ventas", 409)
+
+                clauses, params = [], []
+                vstate=first_existing(vc,"estado","estatus")
+                if vstate:
+                    clauses.append(f"LOWER(CAST(v.`{vstate}` AS CHAR)) IN ('completada','completado','activa','activo')")
                 if desde:
-                    clauses.append(f"v.`{vdate}` >= %s"); params.append(desde)
+                    clauses.append(f"v.`{vdate}` >= %s")
+                    params.append(desde)
                 if hasta:
-                    clauses.append(f"v.`{vdate}` < DATE_ADD(%s, INTERVAL 1 DAY)"); params.append(hasta)
-                where=(" WHERE "+" AND ".join(clauses)) if clauses else ""
-                select_total=f"COALESCE(SUM(v.`{vtotal}`),0)" if vtotal else "0"
-                cur.execute(f"SELECT {select_total} AS total FROM ventas v{where}",params)
-                result["total_ventas"]=clean(cur.fetchone()["total"])
-                subtotal_expr=f"SUM(d.`{dsub}`)" if dsub else f"SUM(d.`{dqty}` * p.`{first_existing(pc,'precio_venta','precio') or '0'}`)"
-                cur.execute(f"SELECT p.`{pname}` AS producto, SUM(d.`{dqty}`) AS unidades, {subtotal_expr} AS importe FROM detalles_venta d JOIN ventas v ON d.`{dvid}`=v.`{first_existing(vc,'id_venta','id') or 'id_venta'}` JOIN productos p ON d.`{dpid}`=p.`{pid}`{where} GROUP BY p.`{pname}` ORDER BY unidades DESC",params)
-                top=clean_rows(cur.fetchall())
-                result["graficas"]["productos_mas_vendidos"]=top
-                result["data"]=top
-                if vdate:
-                    cur.execute(f"SELECT DATE(v.`{vdate}`) AS periodo, COALESCE(SUM(v.`{vtotal}`),0) AS total FROM ventas v{where} GROUP BY DATE(v.`{vdate}`) ORDER BY periodo",params)
-                    result["graficas"]["ventas_por_dia"]=clean_rows(cur.fetchall())
-            elif tipo=="inventario":
-                pc=columns_set(db,"productos"); pid=first_existing(pc,"id_producto","id"); pname=first_existing(pc,"nombre","producto"); stock=first_existing(pc,"stock_actual","existencia","stock"); minimum=first_existing(pc,"stock_minimo","minimo"); price=first_existing(pc,"precio_venta","precio"); state=first_existing(pc,"estado","estatus")
-                if not pid or not pname or not stock:
-                    db.close(); return json_error("No están disponibles las columnas necesarias para inventario",409)
-                cur.execute("SELECT * FROM productos ORDER BY 1 DESC")
-                rows=clean_rows(cur.fetchall())
-                result["data"]=rows
-                low=[]
-                if minimum:
-                    cur.execute(f"SELECT `{pname}` AS producto, `{stock}` AS stock, `{minimum}` AS minimo FROM productos WHERE `{stock}` <= `{minimum}` ORDER BY `{stock}`")
-                    low=clean_rows(cur.fetchall())
-                result["graficas"]["stock_bajo"]=low
-                result["graficas"]["stock_por_producto"]= [{"producto":r.get(pname),"stock":r.get(stock)} for r in rows]
-            else:
-                cc=columns_set(db,"clientes"); mc=columns_set(db,"membresias")
-                cid=first_existing(cc,"id_cliente","id"); cmid=first_existing(cc,"id_membresia"); ctype=first_existing(cc,"tipo_membresia","membresia"); cestado=first_existing(cc,"estado","estatus")
-                mid=first_existing(mc,"id_membresia","id"); mname=first_existing(mc,"nombre")
-                if cmid and mid and mname:
-                    sql=f"SELECT m.`{mname}` AS membresia, COUNT(*) AS cantidad FROM clientes c LEFT JOIN membresias m ON c.`{cmid}`=m.`{mid}` GROUP BY m.`{mname}` ORDER BY cantidad DESC"
-                elif ctype:
-                    sql=f"SELECT c.`{ctype}` AS membresia, COUNT(*) AS cantidad FROM clientes c GROUP BY c.`{ctype}` ORDER BY cantidad DESC"
+                    clauses.append(f"v.`{vdate}` < DATE_ADD(%s, INTERVAL 1 DAY)")
+                    params.append(hasta)
+                where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+
+                select_total = f"COALESCE(SUM(v.`{vtotal}`),0)" if vtotal else "0"
+                cur.execute(f"SELECT {select_total} AS total FROM ventas v{where}", params)
+                total_ventas = clean(cur.fetchone()["total"])
+
+                if dsub:
+                    importe_expr = f"SUM(d.`{dsub}`)"
+                elif price:
+                    importe_expr = f"SUM(d.`{dqty}` * p.`{price}`)"
                 else:
-                    sql="SELECT 'Sin membresía' AS membresia, COUNT(*) AS cantidad FROM clientes"
+                    importe_expr = "0"
+
+                cur.execute(
+                    f"SELECT p.`{pname}` AS producto, SUM(d.`{dqty}`) AS unidades, "
+                    f"{importe_expr} AS importe "
+                    f"FROM detalles_venta d "
+                    f"JOIN ventas v ON d.`{dvid}`=v.`{vid}` "
+                    f"JOIN productos p ON d.`{dpid}`=p.`{pid}`{where} "
+                    f"GROUP BY p.`{pname}` ORDER BY unidades DESC",
+                    params,
+                )
+                productos = clean_rows(cur.fetchall())
+
+                if vdate:
+                    cur.execute(
+                        f"SELECT DATE(v.`{vdate}`) AS periodo, "
+                        f"COALESCE(SUM(v.`{vtotal}`),0) AS total "
+                        f"FROM ventas v{where} GROUP BY DATE(v.`{vdate}`) ORDER BY periodo",
+                        params,
+                    )
+                    ventas_dia = clean_rows(cur.fetchall())
+                else:
+                    ventas_dia = []
+
+                ventas_data = {
+                    "total_ventas": total_ventas,
+                    "productos_mas_vendidos": productos,
+                    "ventas_por_dia": ventas_dia,
+                }
+                result["ventas"] = ventas_data
+                result["graficas"]["ventas_por_dia"] = ventas_dia
+                result["graficas"]["productos_mas_vendidos"] = productos
+                if tipo == "ventas":
+                    result["data"] = productos
+
+            # =========================
+            # REPORTE DE INVENTARIO
+            # =========================
+            if tipo in ("inventario", "general"):
+                pc = columns_set(db, "productos")
+                pid = first_existing(pc, "id_producto", "id")
+                pname = first_existing(pc, "nombre", "producto")
+                stock = first_existing(pc, "stock_actual", "existencia", "stock")
+                minimum = first_existing(pc, "stock_minimo", "minimo")
+                if not (pid and pname and stock):
+                    return json_error("No están disponibles las columnas necesarias para inventario", 409)
+
+                cur.execute("SELECT * FROM productos ORDER BY 1 DESC")
+                rows = clean_rows(cur.fetchall())
+                low = []
+                if minimum:
+                    cur.execute(
+                        f"SELECT `{pname}` AS producto, `{stock}` AS stock, `{minimum}` AS minimo "
+                        f"FROM productos WHERE `{stock}` <= `{minimum}` ORDER BY `{stock}`"
+                    )
+                    low = clean_rows(cur.fetchall())
+
+                stock_graph = [{"producto": r.get(pname), "stock": r.get(stock)} for r in rows]
+                inventario_data = {"productos": rows, "stock_bajo": low, "stock_por_producto": stock_graph}
+                result["inventario"] = inventario_data
+                result["graficas"]["stock_bajo"] = low
+                result["graficas"]["stock_por_producto"] = stock_graph
+                if tipo == "inventario":
+                    result["data"] = rows
+
+            # =========================
+            # REPORTE DE MEMBRESÍAS
+            # =========================
+            if tipo in ("membresias", "general"):
+                cc = columns_set(db, "clientes")
+                mc = columns_set(db, "membresias")
+                cmid = first_existing(cc, "id_membresia")
+                ctype = first_existing(cc, "tipo_membresia", "membresia")
+                cestado = first_existing(cc, "estado", "estatus")
+                mid = first_existing(mc, "id_membresia", "id")
+                mname = first_existing(mc, "nombre")
+
+                if cmid and mid and mname:
+                    sql = (
+                        f"SELECT m.`{mname}` AS membresia, COUNT(*) AS cantidad "
+                        f"FROM clientes c LEFT JOIN membresias m ON c.`{cmid}`=m.`{mid}` "
+                        f"GROUP BY m.`{mname}` ORDER BY cantidad DESC"
+                    )
+                elif ctype:
+                    sql = (
+                        f"SELECT c.`{ctype}` AS membresia, COUNT(*) AS cantidad "
+                        f"FROM clientes c GROUP BY c.`{ctype}` ORDER BY cantidad DESC"
+                    )
+                else:
+                    sql = "SELECT 'Sin membresía' AS membresia, COUNT(*) AS cantidad FROM clientes"
                 cur.execute(sql)
-                result["graficas"]["membresias_por_tipo"]=clean_rows(cur.fetchall())
+                memb_tipo = clean_rows(cur.fetchall())
+
+                estados = []
                 if cestado:
-                    cur.execute(f"SELECT `{cestado}` AS estado, COUNT(*) AS cantidad FROM clientes GROUP BY `{cestado}` ORDER BY cantidad DESC")
-                    result["graficas"]["socios_por_estado"]=clean_rows(cur.fetchall())
+                    cur.execute(
+                        f"SELECT `{cestado}` AS estado, COUNT(*) AS cantidad "
+                        f"FROM clientes GROUP BY `{cestado}` ORDER BY cantidad DESC"
+                    )
+                    estados = clean_rows(cur.fetchall())
+
                 cur.execute("SELECT * FROM clientes ORDER BY 1 DESC")
-                result["data"]=clean_rows(cur.fetchall())
-        db.close()
+                clientes = clean_rows(cur.fetchall())
+                membresias_data = {
+                    "clientes": clientes,
+                    "membresias_por_tipo": memb_tipo,
+                    "socios_por_estado": estados,
+                }
+                result["membresias"] = membresias_data
+                result["graficas"]["membresias_por_tipo"] = memb_tipo
+                result["graficas"]["socios_por_estado"] = estados
+                if tipo == "membresias":
+                    result["data"] = clientes
+
         return jsonify(result)
     except Exception as e:
-        try: db.close()
-        except Exception: pass
-        return json_error("No se pudo generar el reporte",500,e)
+        return json_error("No se pudo generar el reporte", 500, e)
+    finally:
+        if db:
+            try:
+                db.close()
+            except Exception:
+                pass
 
 
 def current_client_id(conn):
@@ -854,3 +1005,199 @@ def productos_put(id_producto):
         db.close(); return jsonify({"ok":True})
     except Exception as e:return json_error("No se pudo editar el producto",500,e)
 
+
+
+# ========================= COMPLETE SYSTEM ENDPOINTS =========================
+@api.post("/usuarios")
+@role_required("dueno")
+def usuarios_post():
+    payload=request.get_json(silent=True) or request.form.to_dict()
+    db=None
+    try:
+        db=get_db(); cols=columns_set(db,"usuarios")
+        mapping={"nombre":first_existing(cols,"nombre","nombre_completo"),"usuario":first_existing(cols,"usuario","username","user"),"password":first_existing(cols,"password","contrasena","clave"),"rol":first_existing(cols,"rol","role"),"id_rol":first_existing(cols,"id_rol"),"activo":first_existing(cols,"activo","estado","estatus")}
+        fields=[];vals=[]
+        for k,c in mapping.items():
+            if c and k in payload and str(payload[k]).strip()!='' and k!='id_rol': fields.append(f"`{c}`");vals.append(payload[k])
+        if mapping["rol"] and mapping["rol"] not in [x.strip('`') for x in fields]: raise ValueError("Selecciona un rol")
+        if mapping["activo"] and mapping["activo"] in [x.strip('`') for x in fields]:
+            i=[x.strip('`') for x in fields].index(mapping["activo"]); vals[i]=1 if str(vals[i]).lower() in ('1','true','si','sí','activo') else 0
+        elif mapping["activo"]: fields.append(f"`{mapping['activo']}`");vals.append(1)
+        if not mapping["usuario"] or not mapping["password"]: raise RuntimeError("La tabla usuarios necesita usuario y password")
+        with db.cursor() as cur:
+            cur.execute(f"INSERT INTO usuarios ({','.join(fields)}) VALUES ({','.join(['%s']*len(vals))})",vals); nid=cur.lastrowid
+        return jsonify({"ok":True,"id_usuario":nid})
+    except Exception as e:return json_error("No se pudo crear el usuario",500,e)
+    finally:
+        if db: db.close()
+
+@api.put("/usuarios/<int:id_usuario>")
+@role_required("dueno")
+def usuarios_put(id_usuario):
+    payload=request.get_json(silent=True) or {};db=None
+    try:
+        db=get_db();cols=columns_set(db,"usuarios");idc=first_existing(cols,"id_usuario","id");sets=[];vals=[]
+        for k,names in {"nombre":["nombre","nombre_completo"],"usuario":["usuario","username","user"],"password":["password","contrasena","clave"],"rol":["rol","role"],"activo":["activo","estado","estatus"]}.items():
+            c=first_existing(cols,*names)
+            if c and k in payload:sets.append(f"`{c}`=%s");vals.append(payload[k])
+        if not sets:return json_error("No hay cambios")
+        with db.cursor() as cur:cur.execute(f"UPDATE usuarios SET {','.join(sets)} WHERE `{idc}`=%s",vals+[id_usuario])
+        return jsonify({"ok":True})
+    except Exception as e:return json_error("No se pudo actualizar el usuario",500,e)
+    finally:
+        if db:db.close()
+
+@api.get("/auditoria")
+@role_required("dueno")
+def auditoria_get():
+    db=None
+    try:
+        db=get_db();cols=columns_set(db,"reportes") if False else set()
+        # Si existe una tabla de auditoría, se usa. Si no, se devuelve un registro informativo sin romper la pantalla.
+        with db.cursor() as cur:
+            cur.execute("SHOW TABLES LIKE 'auditoria'");exists=cur.fetchone()
+            if exists:
+                q=request.args.get('q','').strip();fecha=request.args.get('fecha','').strip();cur.execute("SELECT * FROM auditoria ORDER BY 1 DESC LIMIT 500");rows=clean_rows(cur.fetchall())
+            else: rows=[]
+        return jsonify({"data":rows})
+    except Exception as e:return json_error("No se pudo consultar auditoría",500,e)
+    finally:
+        if db:db.close()
+
+@api.get("/accesos")
+@role_required("recepcion","gerente","dueno")
+def accesos_get():
+    db=None
+    try:
+        db=get_db()
+        with db.cursor() as cur:
+            cur.execute("SHOW TABLES LIKE 'accesos'");ok=cur.fetchone()
+            if not ok:return jsonify({"data":[]})
+            cur.execute("SELECT * FROM accesos ORDER BY 1 DESC LIMIT 100");rows=clean_rows(cur.fetchall())
+        return jsonify({"data":rows})
+    except Exception as e:return json_error("No se pudieron consultar accesos",500,e)
+    finally:
+        if db:db.close()
+
+@api.post("/accesos")
+@role_required("recepcion")
+def accesos_post():
+    payload=request.get_json(silent=True) or {};db=None
+    try:
+        db=get_db();
+        with db.cursor() as cur:
+            cur.execute("SHOW TABLES LIKE 'accesos'");ok=cur.fetchone()
+            if not ok:return json_error("Crea la tabla accesos para habilitar el control de entradas",409)
+            ac=columns_set(db,'accesos');cc=columns_set(db,'clientes');cid=first_existing(cc,'id_cliente');cno=first_existing(cc,'no_socio','numero_socio')
+            socio=str(payload.get('no_socio','')).strip();
+            if not socio:return json_error('No. de socio requerido')
+            cur.execute(f"SELECT `{cid}` id_cliente FROM clientes WHERE `{cno}`=%s LIMIT 1",(socio,));row=cur.fetchone()
+            if not row:return json_error('Socio no encontrado',404)
+            data={};
+            for k,names in {'id_cliente':['id_cliente'],'id_usuario':['id_usuario'],'fecha':['fecha','fecha_acceso','fecha_entrada'],'tipo':['tipo','tipo_acceso']}.items():
+                c=first_existing(ac,*names)
+                if c:data[c]=row['id_cliente'] if k=='id_cliente' else session.get('id_usuario') if k=='id_usuario' else datetime.now() if k=='fecha' else 'Entrada'
+            if not data:return json_error('La tabla accesos no tiene columnas compatibles',409)
+            cur.execute(f"INSERT INTO accesos ({','.join('`'+k+'`' for k in data)}) VALUES ({','.join(['%s']*len(data))})",list(data.values()))
+        return jsonify({'ok':True})
+    except Exception as e:return json_error('No se pudo registrar el acceso',500,e)
+    finally:
+        if db:db.close()
+
+@api.get("/configuracion")
+@role_required("dueno")
+def configuracion_get():
+    db=None
+    try:
+        db=get_db()
+        with db.cursor() as cur:
+            cur.execute("SHOW TABLES LIKE 'configuracion'");ok=cur.fetchone()
+            if not ok:return jsonify({'data':{'nombre':'GYMPRO','telefono':'','correo':'','direccion':''}})
+            cur.execute("SELECT * FROM configuracion ORDER BY 1 DESC LIMIT 1");row=cur.fetchone() or {}
+        return jsonify({'data':clean(row)})
+    except Exception as e:return json_error('No se pudo cargar configuración',500,e)
+    finally:
+        if db:db.close()
+
+@api.put("/configuracion")
+@role_required("dueno")
+def configuracion_put():
+    payload=request.get_json(silent=True) or {};db=None
+    try:
+        db=get_db()
+        with db.cursor() as cur:
+            cur.execute("SHOW TABLES LIKE 'configuracion'");ok=cur.fetchone()
+            if not ok:return json_error('Crea la tabla configuracion para guardar estos datos',409)
+            cols=columns_set(db,'configuracion');idc=first_existing(cols,'id_configuracion','id');data={}
+            for k,names in {'nombre':['nombre','nombre_gimnasio'],'telefono':['telefono','tel'],'correo':['correo','email'],'direccion':['direccion']}.items():
+                c=first_existing(cols,*names)
+                if c and k in payload:data[c]=payload[k]
+            if not data:return json_error('No hay campos compatibles')
+            if idc:
+                cur.execute(f"SELECT `{idc}` FROM configuracion ORDER BY `{idc}` DESC LIMIT 1");row=cur.fetchone()
+            else:row=None
+            if row:cur.execute(f"UPDATE configuracion SET {','.join('`'+k+'`=%s' for k in data)} WHERE `{idc}`=%s",list(data.values())+[row[idc]])
+            else:cur.execute(f"INSERT INTO configuracion ({','.join('`'+k+'`' for k in data)}) VALUES ({','.join(['%s']*len(data))})",list(data.values()))
+        return jsonify({'ok':True})
+    except Exception as e:return json_error('No se pudo guardar configuración',500,e)
+    finally:
+        if db:db.close()
+
+@api.post("/clases")
+@role_required("recepcion")
+def clases_post():
+    payload=request.get_json(silent=True) or {};db=None
+    try:
+        db=get_db();cols=columns_set(db,'clases');data={}
+        for k,names in {'nombre':['nombre','clase'],'id_disciplina':['id_disciplina'],'id_entrenador':['id_entrenador'],'fecha':['fecha','fecha_clase'],'dia':['dia'],'horario':['horario','hora'],'duracion':['duracion'],'cupo_maximo':['cupo_maximo','cupos'],'estado':['estado','estatus']}.items():
+            c=first_existing(cols,*names)
+            if c and k in payload:data[c]=payload[k]
+        if not data:return json_error('No se encontraron columnas compatibles en clases')
+        with db.cursor() as cur:cur.execute(f"INSERT INTO clases ({','.join('`'+k+'`' for k in data)}) VALUES ({','.join(['%s']*len(data))})",list(data.values()));nid=cur.lastrowid
+        return jsonify({'ok':True,'id_clase':nid})
+    except Exception as e:return json_error('No se pudo crear la clase',500,e)
+    finally:
+        if db:db.close()
+
+@api.put("/clases/<int:id_clase>")
+@role_required("recepcion")
+def clases_put(id_clase):
+    payload=request.get_json(silent=True) or {};db=None
+    try:
+        db=get_db();cols=columns_set(db,'clases');idc=first_existing(cols,'id_clase','id');sets=[];vals=[]
+        for k,names in {'nombre':['nombre','clase'],'id_disciplina':['id_disciplina'],'id_entrenador':['id_entrenador'],'fecha':['fecha','fecha_clase'],'dia':['dia'],'horario':['horario','hora'],'duracion':['duracion'],'cupo_maximo':['cupo_maximo','cupos'],'estado':['estado','estatus']}.items():
+            c=first_existing(cols,*names)
+            if c and k in payload:sets.append(f'`{c}`=%s');vals.append(payload[k])
+        if not sets:return json_error('No hay cambios')
+        with db.cursor() as cur:cur.execute(f"UPDATE clases SET {','.join(sets)} WHERE `{idc}`=%s",vals+[id_clase])
+        return jsonify({'ok':True})
+    except Exception as e:return json_error('No se pudo actualizar la clase',500,e)
+    finally:
+        if db:db.close()
+
+# Override report filtering so each report stays strictly in its own section; general is the only combined one.
+
+@api.get("/disciplinas")
+@role_required("recepcion","gerente","dueno","cliente")
+def disciplinas_get():
+    db=None
+    try:
+        db=get_db();c=columns_set(db,'disciplinas');idc=first_existing(c,'id_disciplina','id');name=first_existing(c,'nombre','disciplina','nombre_disciplina')
+        if not idc or not name:return jsonify({'data':[]})
+        with db.cursor() as cur:cur.execute(f"SELECT `{idc}` id,`{name}` nombre FROM disciplinas ORDER BY `{name}`");rows=clean_rows(cur.fetchall())
+        return jsonify({'data':rows})
+    except Exception as e:return json_error('No se pudieron consultar disciplinas',500,e)
+    finally:
+        if db:db.close()
+@api.get("/entrenadores")
+@role_required("recepcion","gerente","dueno","cliente")
+def entrenadores_get():
+    db=None
+    try:
+        db=get_db();c=columns_set(db,'entrenadores');idc=first_existing(c,'id_entrenador','id');name=first_existing(c,'nombre','nombre_completo')
+        if not idc or not name:return jsonify({'data':[]})
+        with db.cursor() as cur:cur.execute(f"SELECT `{idc}` id,`{name}` nombre FROM entrenadores ORDER BY `{name}`");rows=clean_rows(cur.fetchall())
+        return jsonify({'data':rows})
+    except Exception as e:return json_error('No se pudieron consultar entrenadores',500,e)
+    finally:
+        if db:db.close()
