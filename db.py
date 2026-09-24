@@ -1,11 +1,12 @@
+import os
 import pymysql
 from pymysql.cursors import DictCursor
 
 DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "",
-    "database": "gimnasio",
+    "host": os.getenv("GYMPRO_DB_HOST", "localhost"),
+    "user": os.getenv("GYMPRO_DB_USER", "root"),
+    "password": os.getenv("GYMPRO_DB_PASSWORD", ""),
+    "database": os.getenv("GYMPRO_DB_NAME", "gimnasio"),
     "cursorclass": DictCursor,
     "autocommit": True,
     "charset": "utf8mb4",

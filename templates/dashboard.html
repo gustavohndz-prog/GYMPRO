@@ -1,16 +1,1 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GYMPRO - Dashboard</title>
-<link rel="stylesheet" href="/static/css/g.css">
-</head>
-<body>
-
-<main class="content">
-<h2>Dashboard</h2><section class="grid"><article class="card"><h3>Socios activos</h3><strong id="kpiSocios">0</strong></article><article class="card"><h3>Membresías por vencer</h3><strong id="kpiVencen">0</strong></article><article class="card"><h3>Ventas del mes</h3><strong id="kpiVentas">$0.00</strong></article><article class="card"><h3>Clases de hoy</h3><strong id="kpiClases">0</strong></article></section><section class="card"><h3>Actividad reciente</h3><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Actividad</th><th>Módulo</th></tr></thead><tbody id="actividad"><tr><td>—</td><td>—</td><td>Sin actividad</td><td>—</td></tr></tbody></table></section>
-</main>
-<script src="/static/js/dashboard.js"></script>
-</body>
-</html>
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>GYMPRO - Dashboard</title><link rel="stylesheet" href="/static/css/g.css"></head><body><main class="content"><h2>Dashboard</h2><p class="subtitle">Resumen operativo en tiempo real.</p><section class="grid grid-4"><article class="card"><h3>Socios activos</h3><strong id="kpiSocios">0</strong></article><article class="card"><h3>Membresías por vencer</h3><strong id="kpiVencen">0</strong></article><article class="card" id="kpiVentaCard"><h3>Ventas del mes</h3><strong id="kpiVentas">$0.00</strong></article><article class="card"><h3>Clases de hoy</h3><strong id="kpiClases">0</strong></article></section><section id="dashboardCharts" class="chart-grid" style="margin-top:24px"><article class="card chart-box"><h3>Ventas por día</h3><p class="chart-info">Evolución de ingresos registrados por fecha.</p><canvas id="dashVentas"></canvas></article><article class="card chart-box"><h3>Productos más vendidos</h3><p class="chart-info">Cantidad de unidades vendidas por producto.</p><canvas id="dashProductos"></canvas></article><article class="card chart-box"><h3>Membresías por tipo</h3><p class="chart-info">Distribución actual de socios por membresía.</p><canvas id="dashMembresias"></canvas></article><article class="card chart-box"><h3>Socios por estado</h3><p class="chart-info">Cantidad de socios según su estado.</p><canvas id="dashEstados"></canvas></article></section><section class="card"><h3>Actividad reciente</h3><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Actividad</th><th>Módulo</th></tr></thead><tbody id="actividad"></tbody></table></section></main><script src="/static/js/dashboard.js"></script></body></html>
