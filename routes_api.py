@@ -81,7 +81,7 @@ def health():
         db.close()
         return jsonify({"ok": True, "database": row["db"]})
     except Exception as e:
-        return json_error("No se pudo conectar a MySQL", 503, e)
+        return json_error("No se pudo conectar a la base de datos", 503, e)
 
 @api.get("/socios")
 @role_required("recepcion", "gerente", "dueno")

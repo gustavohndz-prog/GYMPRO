@@ -31,7 +31,7 @@ def login():
                 return redirect(url_for("cliente_inicio") if user["rol"]=="cliente" else url_for("dashboard"))
             flash("Usuario o contraseña incorrectos.")
         except Exception as e:
-            flash("No se pudo conectar con la base de datos gimnasio. Verifica XAMPP/MySQL y las credenciales de DB_CONFIG.")
+            flash("No se pudo conectar con la base de datos gimnasio. Verifica que la base de datos esté disponible y las variables de entorno GYMPRO_DB_* / DATABASE_URL.")
     return render_screen("login.html","/login")
 
 @app.route("/logout")

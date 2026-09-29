@@ -46,3 +46,10 @@ La conexión de GYMPRO se configura en `db.py`. La infraestructura y configuraci
 - `cliente`: portal personal.
 
 Las rutas están protegidas en Flask; ocultar un botón no es el mecanismo de seguridad.
+
+## Despliegue en la nube (PostgreSQL)
+El motor se elige por variables de entorno (no hay que tocar el codigo):
+- **PostgreSQL:** define `DATABASE_URL` (p. ej. `postgresql://user:pass@host:5432/gimnasio?sslmode=require`) o bien `GYMPRO_DB_ENGINE=postgres` con `GYMPRO_DB_HOST/PORT/USER/PASSWORD/NAME` (y opcional `GYMPRO_DB_SSLMODE`).
+- **MySQL/MariaDB (local con XAMPP):** sin `DATABASE_URL`, usa `GYMPRO_DB_*` como antes.
+- Siempre define `SECRET_KEY`. Comando de arranque: `gunicorn gym:app` (ver `Procfile`).
+- Al migrar el esquema a PostgreSQL convierte `TINYINT(1)` a `SMALLINT` (no `BOOLEAN`) y usa columnas `SERIAL`/`IDENTITY` para los ids; el codigo espera `estado` como 1/0 o texto.
