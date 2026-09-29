@@ -5,7 +5,7 @@ from page_renderer import render_screen
 from routes_api import api
 
 app = Flask(__name__)
-app.secret_key = "CAMBIAR_CLAVE_SECRETA"
+app.secret_key = os.getenv("SECRET_KEY", "CAMBIAR_CLAVE_SECRETA")
 app.register_blueprint(api)
 
 PAGES = {
@@ -55,4 +55,4 @@ for _name,_roles in {
     app.add_url_rule("/" + _name.replace("cliente_", "cliente/") if _name.startswith("cliente_") else "/"+_name, _name, globals()[_name])
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")), debug=os.getenv("FLASK_DEBUG") == "1")

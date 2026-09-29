@@ -4,6 +4,7 @@ from pymysql.cursors import DictCursor
 
 DB_CONFIG = {
     "host": os.getenv("GYMPRO_DB_HOST", "localhost"),
+    "port": int(os.getenv("GYMPRO_DB_PORT", "3306")),
     "user": os.getenv("GYMPRO_DB_USER", "root"),
     "password": os.getenv("GYMPRO_DB_PASSWORD", ""),
     "database": os.getenv("GYMPRO_DB_NAME", "gimnasio"),
