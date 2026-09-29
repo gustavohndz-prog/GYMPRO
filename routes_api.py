@@ -515,7 +515,7 @@ def reporte(tipo):
                 clauses, params = [], []
                 vstate=first_existing(vc,"estado","estatus")
                 if vstate:
-                    clauses.append(f"LOWER(CAST(v.`{vstate}` AS CHAR)) IN ('completada','completado','activa','activo')")
+                    clauses.append(f"LOWER(CAST(v.`{vstate}` AS CHAR)) IN ('pagada','completada','completado','activa','activo','')")
                 if desde:
                     clauses.append(f"v.`{vdate}` >= %s")
                     params.append(desde)
@@ -837,7 +837,7 @@ def ventas_post():
                     raise ValueError("Método de pago no válido")
                 fields.append(f"`{metodo_col}`"); vals.append(metodo)
             if estado_col:
-                fields.append(f"`{estado_col}`"); vals.append("completada")
+                fields.append(f"`{estado_col}`"); vals.append("PAGADA")
 
             if not fields:
                 raise RuntimeError("No se encontraron columnas compatibles en ventas")
